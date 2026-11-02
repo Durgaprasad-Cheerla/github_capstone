@@ -1,29 +1,9 @@
-# PR Agent Execution Instructions
+# PR Workflow
 
-## Objective
-Compile all SDLC verification reports and test evidence into a Pull Request, with a repository-root `CHANGELOG.md` entry and reviewer checklist. After separate explicit approval, commit and push only the changelog update; create the PR only after explicit approval of the exact PR title, body, base branch, and head branch. The human remains responsible for reviewing and merging it.
-
-## Execution Protocol
-1. Confirm `verification-report.md`, `code-review.md`, `impl-plan.md`, `requirements.md`, and `architecture.md` exist in the repository root and reflect a passing status. If verification is incomplete or failing, stop and report.
-2. Read `skills.md` and apply the **Summary Generation** skill to write the PR overview and file changes list.
-3. Apply the **Test Evidence Compilation** skill to format test run metrics and execution proof.
-4. Apply the **PR Checklist Drafting** skill to generate the mandatory reviewer checklist.
-5. Draft the complete Pull Request title and description following the 5 required sections.
-6. Add a concise entry under `Unreleased` in the repository-root `CHANGELOG.md`, creating the file if needed and preserving existing content.
-7. Inspect the worktree and exact `CHANGELOG.md` diff. If it contains unrelated pre-existing changes, stop and ask the user to resolve them; never stage them. Prepare a changelog-only commit message ending with `Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>`.
-8. Present the exact changelog diff, commit message, remote, and branch. Wait for separate explicit approval to stage only `CHANGELOG.md`, create the commit, and push it. Do not amend commits.
-9. After approval, stage only the approved changelog change, commit using the approved message, and push to the approved remote/branch. Verify each result. Do not claim success if any command fails.
-10. Confirm the repository, pushed head branch, base branch, and an authorized PR-creation integration or authenticated GitHub CLI (`gh`) are available. Ask the user to resolve branch ambiguity.
-11. Present the exact PR title/body and base/head branches. Wait for explicit approval to create the PR. Apply requested edits and seek approval again.
-12. After approval, create the PR using the authorized GitHub integration or authenticated `gh` CLI and verify the success response. Record its URL and number. If the tool or prerequisites are unavailable, report a blocker and do not claim creation.
-13. Report commit/push status and the PR URL/number to the Orchestrator Agent. Never merge the PR.
-
-## Exit Criteria
-- The Pull Request description contains all 5 required sections (Summary, Changes Made, Test Evidence, Known Limitations, Reviewer Checklist).
-- Test evidence matches `verification-report.md` exactly.
-- The changelog entry is under `Unreleased` in `CHANGELOG.md`.
-- The changelog-only diff, exact commit message, remote/branch, and commit/push action were explicitly approved separately.
-- Only the approved changelog change was committed and pushed.
-- The user has explicitly approved the exact PR content and branches before creation.
-- The PR URL and number are recorded only after the GitHub tool confirms creation.
-- The PR remains open for human review and merge.
+1. Confirm required root artifacts exist: `verification-report.md`, `code-review.md`, `impl-plan.md`, `requirements.md`, and `architecture.md`. Stop if verification fails or a blocking review finding remains unresolved.
+2. Draft the PR using `.github/agents/pr/skills.md`. Include **Summary**, **Changes Made**, **Test Evidence**, **Known Limitations**, and **Reviewer Checklist**. Derive changed files from the actual head-branch diff and cross-check against `impl-plan.md`; use exact evidence from `verification-report.md`.
+3. Add a concise, evidence-based entry under `Unreleased` in `CHANGELOG.md`, preserving existing content. Inspect the worktree and exact diff; stop if the changelog has unrelated changes.
+4. Present the exact changelog diff, commit message (including the Copilot co-author trailer), remote, and branch. Wait for explicit approval of these details and the commit/push action. Stage only `CHANGELOG.md`; verify both operations and report failures.
+5. Confirm the pushed head branch, repository, and base branch. Present the exact PR title, body, and branches; wait for separate explicit approval. Re-present and obtain approval again if any PR content or target changes. If a target is ambiguous, ask before proceeding.
+6. After approval, prefer the authorized GitHub MCP PR-creation tool, such as `github-create_pull_request`. Use authenticated `gh` only if MCP creation is unavailable. Verify the response and record the PR URL/number; if creation is unavailable, report the blocker without claiming success.
+7. Hand off commit/push status and the confirmed PR URL/number to the Orchestrator. Do not modify application code or tests, stage unrelated changes, amend commits, or merge the PR.
