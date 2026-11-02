@@ -23,13 +23,13 @@ The Orchestrator Agent coordinates these stages but is not counted as a delivery
 | **5** | Implementation Agent | `impl-plan.md`, `architecture.md`, `design-review.md` | Application code, tests, build configuration, updated `impl-plan.md` | Passing tests (`mvn test`) & task approval |
 | **6** | Review Agent | Source code, Tests, `pom.xml`, SDLC artifacts | `code-review.md` | Zero unaccepted Critical/High findings |
 | **7** | Verification Agent | Codebase, `pom.xml`, all SDLC artifacts | `verification-report.md` | `mvn clean verify` passes & 100% requirement coverage |
-| **8** | PR Agent | `verification-report.md`, `code-review.md`, `impl-plan.md`, approved changelog-only commit/push and PR content/branch targets | Created Pull Request & Changelog | Separate approval for changelog commit/push and PR creation; tool-confirmed PR URL/number |
+| **8** | PR Agent | `verification-report.md`, `code-review.md`, `impl-plan.md`, `requirements.md`, `architecture.md`, approved changelog-only commit/push and PR content/branch targets | Created Pull Request & Changelog | Separate approval for changelog commit/push and PR creation; tool-confirmed PR URL/number |
 
 ### Orchestrator Agent and human approval authority
 - **Orchestrator Agent** means `.github/agents/orchestrator-agent.agent.md`. It coordinates the workflow and routes work to specialist agents; it is not the owner of their deliverables.
 - The Orchestrator Agent validates each specialist's output and gate before routing to the next stage.
 - The human remains the approval authority for requirements, design decisions, implementation proposals, reviews, verification exceptions, and final PR materials.
-- The PR Agent prepares the PR description and `CHANGELOG.md` entry, commits/pushes only that changelog change after separate explicit approval, then creates the Pull Request after approval using an authorized GitHub integration or authenticated GitHub CLI. It does not merge; the human operator reviews and merges the PR.
+- The PR Agent prepares the PR description and `CHANGELOG.md` entry, commits/pushes only that changelog change after separate explicit approval, then creates the Pull Request after approval using the authorized GitHub MCP PR-creation tool when available, or authenticated GitHub CLI as a fallback. It does not merge; the human operator reviews and merges the PR.
 
 ---
 

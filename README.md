@@ -1,17 +1,8 @@
 # GitHub Capstone Project
 
-This project is a Java 17 Maven application built as part of the GitHub Copilot Agentic SDLC capstone. The current implementation follows the approved stack and focuses on a local browser-based Reading Shelf app served on the loopback interface.
+This repository provides a reusable Agentic SDLC workflow intended to adapt to the user-provided story and approved requirements, rather than assume a particular product such as a Reading Shelf. Each project should derive its requirements, design, plan, implementation, review, and verification from that project's scope.
 
-## Overview
-
-The application is a simple single-user reading management tool that allows a user to:
-
-- add books to a personal reading list
-- search and filter books
-- view book metadata and review status
-- manage a lightweight local library inventory
-
-The project is intentionally designed to run locally without external authentication or network exposure.
+The current repository's implementation scaffold is a Java 17 Maven starter: `org.example.App` prints `Hello World!`. The workflow is product-agnostic, but its current technology standards in `.github/standards/TechStack.md` are Java/Maven-specific; supporting other technology stacks requires updating those standards and the specialist agents that enforce them.
 
 ## Tech Stack
 
@@ -31,11 +22,8 @@ The project is intentionally designed to run locally without external authentica
   standards/
   dependabot.yml
 src/
-  main/
-    java/
-    resources/
-  test/
-    java/
+  main/java/
+  test/java/
 .mvn/
   wrapper/
 README.md
@@ -49,41 +37,16 @@ mvnw.cmd
 - Java 17 JDK
 - Internet access to download Maven Wrapper dependencies on first use
 
-## Run the project
+## Build and test
 
-From the repository root, use the Maven Wrapper:
-
-```powershell
-./mvnw.cmd clean verify
-./mvnw.cmd exec:java
-```
-
-Then open the app in your browser:
-
-```text
-http://127.0.0.1:8080/
-```
-
-## Local data
-
-The app stores user data in a local JSON file outside source directories:
-
-```text
-data/reading-shelf.json
-```
-
-This file is intentionally not committed to version control and should be treated as runtime-generated state.
-
-## Testing
-
-Run the full Maven test suite:
+From PowerShell at the repository root, use the Maven Wrapper:
 
 ```powershell
-./mvnw.cmd clean verify
+.\mvnw.cmd clean verify
 ```
 
-## Notes
+The current test suite checks that the application entry point runs. Run the application with:
 
-- The app binds only to the loopback address (`127.0.0.1`).
-- The project is designed for a local demo and does not expose production-grade authentication or network services.
-- Future work can expand the app with additional book workflows, validation, and richer UI behavior.
+```powershell
+.\mvnw.cmd exec:java
+```

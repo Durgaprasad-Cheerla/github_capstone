@@ -27,7 +27,7 @@
 
 ## Approved Tools
 - Git and GitHub (version control, pull requests)
-- GitHub Copilot's authorized Pull Request creation integration or authenticated GitHub CLI (`gh`) for creating Pull Requests; PR creation requires explicit user approval, and merge remains a human action
+- GitHub Copilot's authorized GitHub MCP PR-creation tool (for example, `github-create_pull_request`), with authenticated GitHub CLI (`gh`) as fallback; PR creation requires explicit user approval, and merge remains a human action
 - GitHub Copilot (agent mode, chat, instructions, skills)
 - GitHub Dependabot (dependency vulnerability alerts and update pull requests), configured in `.github/dependabot.yml`
 - MCP servers for Jira and Confluence, configured in the IDE workspace (used by Copilot, not a project dependency)
