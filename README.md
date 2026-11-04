@@ -1,11 +1,12 @@
 # GitHub Capstone Project
 
-This repository provides a reusable Agentic SDLC workflow intended to adapt to the user-provided story and approved requirements, rather than assume a particular product such as a Reading Shelf. Each project should derive its requirements, design, plan, implementation, review, and verification from that project's scope.
+This repository provides a reusable Agentic SDLC workflow intended to adapt to the user-provided story and approved requirements, rather than assume a particular product. Each project should derive its requirements, design, plan, implementation, review, and verification from that project's scope.
 
 The current repository's implementation scaffold is a Java 17 Maven starter: `org.example.App` prints `Hello World!`. The workflow is product-agnostic, but its current technology standards in `.github/standards/TechStack.md` are Java/Maven-specific; supporting other technology stacks requires updating those standards and the specialist agents that enforce them.
 
-## Tech Stack
+## Approved Technology Profile
 
+The workflow is product-agnostic. This capstone's implementation standards currently approve:
 - Java 17
 - Maven 3.9.9 (via Maven Wrapper)
 - JUnit 5
@@ -13,6 +14,8 @@ The current repository's implementation scaffold is a Java 17 Maven starter: `or
 - Jackson
 - Java built-in `HttpServer`
 - Plain HTML, CSS, and JavaScript
+
+These are approved technologies, not all features of the current starter application. The implementation is currently a Java entry point and test scaffold; use the technology profile in `.github/standards/TechStack.md` when planning this capstone.
 
 ## Project Structure
 

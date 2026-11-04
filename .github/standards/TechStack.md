@@ -21,7 +21,7 @@
 - The approved minimal web-app profile is Java 17 `HttpServer`, static HTML/CSS/JavaScript served by the application, JSON persistence through Jackson, and no additional framework or runtime service.
 - Bind the server to the loopback interface only (`127.0.0.1`); the default browser URL is `http://127.0.0.1:8080/`. If the port is occupied, report the startup failure clearly; do not silently bind to an arbitrary interface or claim the server started.
 - Configure the Maven Exec Plugin in `pom.xml` with a pinned version and an application entry point so the documented command can start the app, for example `mvn compile exec:java`. The Architecture Agent must define the exact entry point and any supported configuration before implementation.
-- Store runtime data outside source/resource directories. The Reading Shelf default data file is `data/reading-shelf.json`; keep generated user data out of version control and handle unreadable, malformed, or unwritable files explicitly.
+- When requirements call for local persistence, define the application-specific data location in the approved requirements or architecture. Store runtime data outside source/resource directories, keep generated user data out of version control, and handle unreadable, malformed, or unwritable data explicitly.
 - Do not add authentication to this single-user, loopback-only demo unless approved requirements change. Do not expose it on a network interface or describe it as production-hardened.
 - Tests must be able to inject a temporary data path and an ephemeral server port so tests do not touch the user's data file or rely on port 8080.
 
