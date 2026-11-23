@@ -1,5 +1,6 @@
 target/
-/data/reading-shelf.json
+# Runtime application data; keep test fixtures under src/test/resources/.
+/data/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

@@ -20,7 +20,7 @@
 ## Local Browser Application Profile
 - The approved minimal web-app profile is Java 17 `HttpServer`, static HTML/CSS/JavaScript served by the application, JSON persistence through Jackson, and no additional framework or runtime service.
 - Bind the server to the loopback interface only (`127.0.0.1`); the default browser URL is `http://127.0.0.1:8080/`. If the port is occupied, report the startup failure clearly; do not silently bind to an arbitrary interface or claim the server started.
-- Configure the Maven Exec Plugin in `pom.xml` with a pinned version and an application entry point so the documented command can start the app, for example `mvn compile exec:java`. The Architecture Agent must define the exact entry point and any supported configuration before implementation.
+- Configure the Maven Exec Plugin in `pom.xml` with a pinned version and an application entry point so the documented command can start the app, for example `.\mvnw.cmd compile exec:java` on Windows or `./mvnw compile exec:java` on Unix-like systems. The Architecture Agent must define the exact entry point and any supported configuration before implementation.
 - When requirements call for local persistence, define the application-specific data location in the approved requirements or architecture. Store runtime data outside source/resource directories, keep generated user data out of version control, and handle unreadable, malformed, or unwritable data explicitly.
 - Do not add authentication to this single-user, loopback-only demo unless approved requirements change. Do not expose it on a network interface or describe it as production-hardened.
 - Tests must be able to inject a temporary data path and an ephemeral server port so tests do not touch the user's data file or rely on port 8080.
@@ -36,7 +36,7 @@
 ## Test Naming Convention
 - Unit tests: `*Test.java` (for example `SyncEngineTest.java`)
 - Integration tests: `*IntegrationTest.java` (for example `ReadingShelfIntegrationTest.java`)
-- Both are run by Maven Surefire through `mvn test` and `mvn verify`
+- Both are run by Maven Surefire through the Maven Wrapper (`.\mvnw.cmd test` / `.\mvnw.cmd verify` on Windows; `./mvnw test` / `./mvnw verify` on Unix-like systems)
 
 ## Project Layout
 - Production code: `src/main/java/`

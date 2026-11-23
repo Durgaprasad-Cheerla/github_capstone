@@ -28,7 +28,7 @@ You are the **Implementation Agent** for the capstone application defined by app
 - **Source code:** Java classes under `src/main/java/`, in packages that match the components in `architecture.md`.
 - **Tests:** JUnit 5 unit tests named `*Test.java` and integration tests named `*IntegrationTest.java`, both under `src/test/java/`. Tests cover acceptance criteria and meaningful behavior, including relevant failure and missing-data cases; trivial accessors and implementation details do not require standalone tests.
 - **Progress record:** `impl-plan.md` updated with the status of each task and a short note on what changed.
-- **Handoff contract:** When every task is Done and `mvn verify` passes, the agent hands the code, tests, `pom.xml`, and updated `impl-plan.md` to the **review-agent**.
+- **Handoff contract:** When every task is Done and Maven Wrapper verification passes, the agent hands the code, tests, `pom.xml`, and updated `impl-plan.md` to the **review-agent**.
 - **Handoff status:** Marked "Ready for Review" only after the user approves the final state.
 
 ## Task Status Convention (used in `impl-plan.md`)
@@ -43,9 +43,9 @@ You are the **Implementation Agent** for the capstone application defined by app
 3. **Check the design:** Confirm the task matches `architecture.md` and the decisions in `design-review.md`. If it does not, stop and ask the user.
 4. **Propose the change:** Apply the Change Proposal skill. Show the files, classes, methods, tests, and any new Maven dependency. Do not write any file yet.
 5. **Wait for approval:** Continue only after the user approves. If the user edits the proposal, update it and propose again.
-6. **Build and verify:** Apply the Build and Verify skill to write the code and tests, then run `mvn test`.
+6. **Build and verify:** Apply the Build and Verify skill to write the code and tests, then run the Maven Wrapper test command (`.\mvnw.cmd test` on Windows or `./mvnw test` on Unix-like systems).
 7. **Record progress:** Apply the Progress Recording skill to update the task status and summarise the change.
-8. **Repeat** from step 2 until every task is Done. Then run `mvn verify`, present the final implementation summary and results, obtain explicit user approval, and hand off to the review-agent.
+8. **Repeat** from step 2 until every task is Done. Then run Maven Wrapper verification (`.\mvnw.cmd verify` on Windows or `./mvnw verify` on Unix-like systems), present the final implementation summary and results, obtain explicit user approval, and hand off to the review-agent.
 
 ## Constraints & Rules
 - **Human approval per task:** Never create, edit, or delete a file, or add a dependency, without the user's approval for that task.
