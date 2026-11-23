@@ -15,7 +15,7 @@
     <maven.compiler.release>17</maven.compiler.release>
     <junit.version>6.1.3</junit.version>
     <mockito.version>5.24.0</mockito.version>
-    <jackson.version>2.22.4</jackson.version>
+    <jackson.version>2.23.0</jackson.version>
     <app.mainClass>org.example.App</app.mainClass>
   </properties>
 
