@@ -74,7 +74,7 @@ Write the approved code and tests, then check that they pass.
 6. Put the requirement ID in each test's display name, for example `@DisplayName("FR-01: sync adds new pages")`. If a test covers several requirements, list all of their IDs.
 7. Write JUnit 5 unit tests (`*Test.java`) in `src/test/java/`. Use Mockito (`@ExtendWith(MockitoExtension.class)` with `@Mock`) to replace external services.
 8. Write integration tests (`*IntegrationTest.java`) that exercise several components together, using test doubles for external services and isolated temporary resources. For a local web application, exercise HTTP behavior on an ephemeral loopback port and use temporary storage.
-9. Run `mvn test` for the task, then fix any failures.
+9. Run the Maven Wrapper test command (`.\mvnw.cmd test` on Windows or `./mvnw test` on Unix-like systems), then fix any failures.
 10. Stop and ask the user after two failed fix attempts.
 
 ### Output
@@ -86,7 +86,7 @@ Java classes in `src/main/java/`, JUnit and Mockito tests in `src/test/java/`, a
 - Unit and integration tests follow the naming convention.
 - No test calls a live external service. Local application tests use temporary storage and an ephemeral loopback port rather than fixed ports or user data.
 - Every test that verifies a requirement includes that requirement's ID in its `@DisplayName`.
-- `mvn test` passes for the task.
+- Maven Wrapper tests pass for the task.
 
 ---
 

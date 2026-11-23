@@ -10,8 +10,8 @@ Run the full build and tests and record exact results.
 - `src/main/java/`, `src/test/java/`
 
 ### Procedure
-1. Record the environment: Java version (`java -version`), Maven version (`mvn -version`), and operating system.
-2. Run `mvn clean verify` from the repository root.
+1. Record the environment: Java version (`java -version`), Maven Wrapper version (`.\mvnw.cmd -version` on Windows or `./mvnw -version` on Unix-like systems), and operating system.
+2. Run the Maven Wrapper verification from the repository root (`.\mvnw.cmd clean verify` on Windows or `./mvnw clean verify` on Unix-like systems).
 3. Record the command, the exit code, and the "Tests run" summary line from the Surefire output.
 4. If any test fails, record its class and method name and the first line of its failure message.
 5. Record the Dependabot alert status as provided by the user. If the status is not available, record "Not Checked" and the reason.

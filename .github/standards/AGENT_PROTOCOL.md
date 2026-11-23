@@ -20,9 +20,9 @@ The Orchestrator Agent coordinates these stages but is not counted as a delivery
 | **2** | Architecture Agent | `requirements.md`, `TechStack.md` | `architecture.md` | Human approval |
 | **3** | Design Review Agent | `architecture.md`, `requirements.md` | `design-review.md`, updated `architecture.md` | Zero unaccepted Critical/High findings & approval |
 | **4** | Planning Agent | `architecture.md`, `design-review.md`, `requirements.md` | `impl-plan.md` | 100% requirement coverage & approval |
-| **5** | Implementation Agent | `impl-plan.md`, `architecture.md`, `design-review.md` | Application code, tests, build configuration, updated `impl-plan.md` | Passing tests (`mvn test`) & task approval |
+| **5** | Implementation Agent | `impl-plan.md`, `architecture.md`, `design-review.md` | Application code, tests, build configuration, updated `impl-plan.md` | Passing Maven Wrapper tests & task approval |
 | **6** | Review Agent | Source code, Tests, `pom.xml`, SDLC artifacts | `code-review.md` | Zero unaccepted Critical/High findings |
-| **7** | Verification Agent | Codebase, `pom.xml`, all SDLC artifacts | `verification-report.md` | `mvn clean verify` passes & 100% requirement coverage |
+| **7** | Verification Agent | Codebase, `pom.xml`, all SDLC artifacts | `verification-report.md` | Maven Wrapper `clean verify` passes & 100% requirement coverage |
 | **8** | PR Agent | `verification-report.md`, `code-review.md`, `impl-plan.md`, `requirements.md`, `architecture.md`, approved changelog-only commit/push and PR content/branch targets | Created Pull Request & Changelog | Separate approval for changelog commit/push and PR creation; tool-confirmed PR URL/number |
 
 ### Orchestrator Agent and human approval authority

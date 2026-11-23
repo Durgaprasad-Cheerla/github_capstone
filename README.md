@@ -4,6 +4,8 @@ This repository provides a reusable Agentic SDLC workflow intended to adapt to t
 
 The current repository's implementation scaffold is a Java 17 Maven starter: `org.example.App` prints `Hello World!`. The workflow is product-agnostic, but its current technology standards in `.github/standards/TechStack.md` are Java/Maven-specific; supporting other technology stacks requires updating those standards and the specialist agents that enforce them.
 
+No project-specific `requirements.md`, architecture, implementation plan, review, or verification artifacts are currently approved in this checkout. A project's completeness cannot be assessed until its story is supplied and the workflow produces and approves those artifacts.
+
 ## Approved Technology Profile
 
 The workflow is product-agnostic. This capstone's implementation standards currently approve:
