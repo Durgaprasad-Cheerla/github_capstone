@@ -1,0 +1,269 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: #f4f1ea;
+  color: #20251f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 0;
+  background:
+    radial-gradient(circle at top right, rgba(154, 126, 74, 0.16), transparent 28rem),
+    #f4f1ea;
+}
+
+.app-shell {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 48px;
+}
+
+.app-header {
+  margin-bottom: 20px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: #7a6845;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  line-height: 1;
+}
+
+h2 {
+  margin-bottom: 16px;
+  font-size: 1.15rem;
+}
+
+.panel {
+  border: 1px solid #d9d2c2;
+  border-radius: 12px;
+  background: rgba(255, 253, 248, 0.96);
+  box-shadow: 0 12px 32px rgba(58, 49, 34, 0.07);
+}
+
+.create-panel {
+  margin-bottom: 20px;
+  padding: 20px;
+}
+
+#create-book-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 180px auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.field {
+  min-width: 0;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+input,
+select,
+button {
+  min-height: 44px;
+  border-radius: 8px;
+  font: inherit;
+}
+
+input,
+select {
+  width: 100%;
+  border: 1px solid #bbb5a7;
+  background: #fff;
+  color: #20251f;
+  padding: 9px 10px;
+}
+
+input:focus,
+select:focus,
+button:focus-visible {
+  outline: 3px solid rgba(81, 112, 78, 0.24);
+  outline-offset: 2px;
+}
+
+.primary-button,
+.status-button {
+  border: 0;
+  background: #426848;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 750;
+  padding: 9px 14px;
+}
+
+.primary-button {
+  align-self: start;
+  margin-top: 25px;
+}
+
+.primary-button:hover,
+.status-button:hover {
+  background: #34543a;
+}
+
+.feedback {
+  min-height: 24px;
+  color: #3f4b3e;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: -4px 0 10px;
+}
+
+.feedback.error {
+  color: #9b2f24;
+}
+
+.feedback.success {
+  color: #31643b;
+  font-weight: 700;
+}
+
+.field-error {
+  display: block;
+  min-height: 18px;
+  margin-top: 4px;
+  color: #9b2f24;
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.inventory-panel {
+  padding: 20px;
+}
+
+.inventory-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.inventory-header h2 {
+  margin-bottom: 10px;
+}
+
+.book-count {
+  color: #716d62;
+  font-size: 0.86rem;
+}
+
+.inventory {
+  display: grid;
+  gap: 10px;
+}
+
+.book-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 150px 130px;
+  gap: 12px;
+  align-items: end;
+  border-top: 1px solid #ebe5d8;
+  padding: 14px 0 4px;
+}
+
+.book-card:first-child {
+  border-top: 0;
+  padding-top: 4px;
+}
+
+.book-detail {
+  min-width: 0;
+  padding-bottom: 9px;
+}
+
+.book-detail strong,
+.book-detail span,
+.status-text {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.book-detail strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.08rem;
+}
+
+.book-detail span {
+  color: #716d62;
+  margin-top: 3px;
+  font-size: 0.9rem;
+}
+
+.status-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.status-text {
+  min-height: 44px;
+  padding: 12px 10px 9px;
+  border: 1px solid #d7d0bf;
+  border-radius: 8px;
+  background: #faf8f2;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.loading-text,
+.empty-text {
+  color: #716d62;
+  padding: 18px 0;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    width: min(100% - 24px, 1120px);
+    padding-top: 20px;
+  }
+
+  #create-book-form {
+    grid-template-columns: 1fr;
+  }
+
+  .primary-button {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .book-card {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .book-detail {
+    padding-bottom: 2px;
+  }
+
+  .status-button {
+    width: 100%;
+  }
+}

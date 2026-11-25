@@ -1,57 +1,76 @@
-# GitHub Capstone Project
+# Reading Shelf
 
-This repository provides a reusable Agentic SDLC workflow intended to adapt to the user-provided story and approved requirements, rather than assume a particular product. Each project should derive its requirements, design, plan, implementation, review, and verification from that project's scope.
-
-The current repository's implementation scaffold is a Java 17 Maven starter: `org.example.App` prints `Hello World!`. The workflow is product-agnostic, but its current technology standards in `.github/standards/TechStack.md` are Java/Maven-specific; supporting other technology stacks requires updating those standards and the specialist agents that enforce them.
-
-No project-specific `requirements.md`, architecture, implementation plan, review, or verification artifacts are currently approved in this checkout. A project's completeness cannot be assessed until its story is supplied and the workflow produces and approves those artifacts.
-
-## Approved Technology Profile
-
-The workflow is product-agnostic. This capstone's implementation standards currently approve:
-- Java 17
-- Maven 3.9.9 (via Maven Wrapper)
-- JUnit 5
-- Mockito
-- Jackson
-- Java built-in `HttpServer`
-- Plain HTML, CSS, and JavaScript
-
-These are approved technologies, not all features of the current starter application. The implementation is currently a Java entry point and test scaffold; use the technology profile in `.github/standards/TechStack.md` when planning this capstone.
-
-## Project Structure
-
-```text
-.github/
-  agents/
-  standards/
-  dependabot.yml
-src/
-  main/java/
-  test/java/
-.mvn/
-  wrapper/
-README.md
-pom.xml
-mvnw
-mvnw.cmd
-```
+A local, Java 17 reading-inventory application with a plain HTML/CSS/JavaScript interface and JSON persistence. The server is intended only for the local machine.
 
 ## Prerequisites
 
 - Java 17 JDK
-- Internet access to download Maven Wrapper dependencies on first use
+- Internet access may be required when the Maven Wrapper dependencies are first downloaded
 
-## Build and test
+## Start the application
 
-From PowerShell at the repository root, use the Maven Wrapper:
-
-```powershell
-.\mvnw.cmd clean verify
-```
-
-The current test suite checks that the application entry point runs. Run the application with:
+From PowerShell at the repository root on Windows:
 
 ```powershell
-.\mvnw.cmd exec:java
+.\mvnw.cmd compile exec:java
 ```
+
+From a Unix-like shell at the repository root:
+
+```sh
+./mvnw compile exec:java
+```
+
+The application binds only to `127.0.0.1` and serves the browser UI at:
+
+`http://127.0.0.1:8080/`
+
+Port `8080` must be available. If binding fails, startup reports the failure and does not fall back to another port or interface.
+
+## Persistence
+
+The runtime inventory is stored at:
+
+`data/runtime/reading-shelf.json`
+
+The file is resolved relative to the Maven working directory/repository root. A missing runtime file starts as an empty shelf. A malformed or unreadable existing runtime file fails startup instead of being replaced.
+
+The existing `data/reading-shelf.json` file is never read, migrated, copied, or overwritten. It remains separate from the runtime application data. The `data/` directory is excluded from normal Git version control, so runtime inventory content is not committed with source changes.
+
+## Build and tests
+
+Run the complete Maven verification suite from PowerShell:
+
+```powershell
+.\mvnw.cmd verify
+```
+
+Or from a Unix-like shell:
+
+```sh
+./mvnw verify
+```
+
+Unit tests use `*Test.java`; HTTP and persistence integration tests use `*IntegrationTest.java`. Tests use isolated temporary data paths and injected/ephemeral ports, not the runtime file or a fixed test port.
+
+## Responsive browser smoke check
+
+Perform this manual check in a modern browser after starting the application. The smoke check is the mitigated F-04 responsiveness check.
+
+Run the complete interaction sequence at both viewport sizes:
+
+| Viewport | Required result |
+|---|---|
+| `1280 × 800` | Inventory, create controls, and status controls are visible and usable |
+| `375 × 667` | Same controls and feedback remain usable; vertical scrolling is allowed |
+
+For each viewport:
+
+1. Open `http://127.0.0.1:8080/` and confirm the complete inventory is displayed.
+2. Submit a valid book title and author, and confirm the new inventory entry appears.
+3. Change the new or an existing book's status and confirm the visible status and inventory update.
+4. Submit invalid title or author fields and confirm field-specific feedback is visible.
+5. Confirm no text or control is clipped or overlapped.
+6. Confirm no horizontal page scrolling is required to reach or use controls.
+
+Record the viewport, passed interactions, and any clipping or overlap observed. Automated Maven tests do not replace this browser check.
