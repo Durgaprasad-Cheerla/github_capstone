@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -84,6 +85,10 @@ public interface ReadingShelfIo {
             try (FileChannel channel = FileChannel.open(directory,
                     StandardOpenOption.READ)) {
                 channel.force(true);
+            } catch (AccessDeniedException exception) {
+                throw new UnsupportedOperationException(
+                        "Parent-directory synchronization is unsupported on this platform",
+                        exception);
             }
         }
 

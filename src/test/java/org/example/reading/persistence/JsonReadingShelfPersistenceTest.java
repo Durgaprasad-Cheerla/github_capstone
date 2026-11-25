@@ -184,6 +184,29 @@ class JsonReadingShelfPersistenceTest {
     }
 
     @Test
+    @DisplayName("CR-01: AccessDenied directory sync is classified as unsupported")
+    void accessDeniedDirectorySyncReturnsLimitedSuccess() throws IOException {
+        Path path = tempDirectory.resolve("access-denied-sync.json");
+        Path parent = path.getParent();
+        Path temporary = tempDirectory.resolve("access-denied.tmp");
+        ReadingShelfIo io = mock(ReadingShelfIo.class);
+        when(io.createTempFile(eq(parent), any(), any())).thenReturn(temporary);
+        org.mockito.Mockito.doThrow(new UnsupportedOperationException(
+                        "Parent-directory synchronization is unsupported on this platform"))
+                .when(io).syncDirectory(parent);
+
+        JsonReadingShelfPersistence persistence =
+                new JsonReadingShelfPersistence(path, io);
+
+        JsonReadingShelfPersistence.SaveResult result =
+                persistence.saveWithResult(List.of(
+                        new Book("Dune", "Frank Herbert", ReadingStatus.READING)));
+
+        assertEquals(JsonReadingShelfPersistence.SaveResult.PLATFORM_LIMITED_DURABILITY, result);
+        assertFalse(persistence.isFailClosed());
+    }
+
+    @Test
     @DisplayName("CR-01, FR-06: supported directory sync returns full durability")
     void supportedDirectorySyncReturnsFullDurability() throws IOException {
         Path path = tempDirectory.resolve("supported-sync.json");
