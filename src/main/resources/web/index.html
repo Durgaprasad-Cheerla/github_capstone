@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reading Shelf</title>
+  <link rel="stylesheet" href="/web/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <p class="eyebrow">Personal Library</p>
+      <h1>Reading Shelf</h1>
+    </header>
+
+    <section class="panel create-panel" aria-labelledby="create-heading">
+      <h2 id="create-heading">Add a book</h2>
+      <div id="create-action-feedback" class="feedback" role="status" aria-live="polite"></div>
+      <form id="create-book-form" novalidate>
+        <div class="field">
+          <label for="title">Title</label>
+          <input id="title" name="title" type="text" autocomplete="off">
+          <span id="title-error" class="field-error"></span>
+        </div>
+
+        <div class="field">
+          <label for="author">Author</label>
+          <input id="author" name="author" type="text" autocomplete="off">
+          <span id="author-error" class="field-error"></span>
+        </div>
+
+        <div class="field">
+          <label for="status">Status</label>
+          <select id="status" name="status">
+            <option value="To Read">To Read</option>
+            <option value="Reading">Reading</option>
+            <option value="Finished">Finished</option>
+          </select>
+          <span id="status-error" class="field-error"></span>
+        </div>
+
+        <button class="primary-button" type="submit">Add to shelf</button>
+      </form>
+    </section>
+
+    <section class="panel inventory-panel" aria-labelledby="inventory-heading">
+      <div class="inventory-header">
+        <h2 id="inventory-heading">Inventory</h2>
+        <span id="book-count" class="book-count">0 books</span>
+      </div>
+      <div id="inventory-action-feedback" class="feedback" role="status" aria-live="polite"></div>
+      <div id="inventory" class="inventory">
+        <p class="loading-text">Loading inventory…</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="/web/app.js"></script>
+</body>
+</html>
