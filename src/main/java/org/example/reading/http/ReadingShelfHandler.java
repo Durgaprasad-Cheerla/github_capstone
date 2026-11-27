@@ -24,6 +24,12 @@ import java.util.Objects;
 public final class ReadingShelfHandler implements HttpHandler {
     private static final int MAX_REQUEST_BYTES = 1024 * 1024;
     private static final int READ_CHUNK_BYTES = 8192;
+    private static final int MAX_TITLE_LENGTH = 100;
+    private static final int MAX_AUTHOR_LENGTH = 50;
+    private static final String TITLE_LENGTH_MESSAGE =
+            "title must be between 1 and 100 characters";
+    private static final String AUTHOR_LENGTH_MESSAGE =
+            "author must be between 1 and 50 characters";
     private static final String PAYLOAD_TOO_LARGE_MESSAGE =
             "Request body exceeds the 1 MB limit.";
 
@@ -217,15 +223,11 @@ public final class ReadingShelfHandler implements HttpHandler {
             return errors;
         }
 
-        JsonNode title = body.get("title");
-        if (title == null || !title.isTextual()
-                || title.textValue().trim().isEmpty()) {
-            errors.put("title", "Title must not be blank");
+        if (!isTrimmedLengthValid(body.get("title"), MAX_TITLE_LENGTH)) {
+            errors.put("title", TITLE_LENGTH_MESSAGE);
         }
-        JsonNode author = body.get("author");
-        if (author == null || !author.isTextual()
-                || author.textValue().trim().isEmpty()) {
-            errors.put("author", "Author must not be blank");
+        if (!isTrimmedLengthValid(body.get("author"), MAX_AUTHOR_LENGTH)) {
+            errors.put("author", AUTHOR_LENGTH_MESSAGE);
         }
         JsonNode status = body.get("status");
         if (status == null || !status.isTextual()) {
@@ -238,6 +240,14 @@ public final class ReadingShelfHandler implements HttpHandler {
             }
         }
         return errors;
+    }
+
+    private static boolean isTrimmedLengthValid(JsonNode value, int maxLength) {
+        if (value == null || !value.isTextual()) {
+            return false;
+        }
+        int length = value.textValue().trim().length();
+        return length >= 1 && length <= maxLength;
     }
 
     private Map<String, String> statusFieldErrors(JsonNode body) {
