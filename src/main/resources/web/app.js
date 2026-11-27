@@ -51,8 +51,10 @@ async function readError(response) {
   };
 }
 
-async function loadInventory() {
-  setFeedback(inventoryFeedback, "", "");
+async function loadInventory(options = {}) {
+  if (options.preserveFeedback !== true) {
+    setFeedback(inventoryFeedback, "", "");
+  }
   inventoryElement.replaceChildren();
   const loading = document.createElement("p");
   loading.className = "loading-text";
@@ -182,7 +184,7 @@ async function changeStatus(title, author, status) {
     } else if (!body.durabilityWarning) {
       setFeedback(inventoryFeedback, "Status changed successfully.", "success");
     }
-    await loadInventory();
+    await loadInventory({ preserveFeedback: true });
   } catch (error) {
     setFeedback(inventoryFeedback, "Unable to change the book status.", "error");
   }
