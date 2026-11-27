@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
@@ -81,16 +82,21 @@ public final class ShelfService {
                 throw new ValidationException("Invalid book fields", fieldErrors);
             }
 
+            String storedTitle = normalizeForStorage(title);
+            String storedAuthor = normalizeForStorage(author);
+            String titleKey = normalizeForIdentity(title);
+            String authorKey = normalizeForIdentity(author);
             for (Book existing : inventory) {
-                if (existing.title().equals(title) && existing.author().equals(author)) {
+                if (normalizeForIdentity(existing.title()).equals(titleKey)
+                        && normalizeForIdentity(existing.author()).equals(authorKey)) {
                     throw new DuplicateBookException(
                             "A book with this title and author already exists",
-                            title,
-                            author);
+                            storedTitle,
+                            storedAuthor);
                 }
             }
 
-            Book created = new Book(title, author, status);
+            Book created = new Book(storedTitle, storedAuthor, status);
             List<Book> candidate = new ArrayList<>(inventory);
             candidate.add(created);
             List<Book> candidateSnapshot = List.copyOf(candidate);
@@ -133,10 +139,13 @@ public final class ShelfService {
                 throw new ValidationException("Invalid book fields", fieldErrors);
             }
 
+            String titleKey = normalizeForIdentity(title);
+            String authorKey = normalizeForIdentity(author);
             int matchIndex = -1;
             for (int index = 0; index < inventory.size(); index++) {
                 Book existing = inventory.get(index);
-                if (existing.title().equals(title) && existing.author().equals(author)) {
+                if (normalizeForIdentity(existing.title()).equals(titleKey)
+                        && normalizeForIdentity(existing.author()).equals(authorKey)) {
                     matchIndex = index;
                     break;
                 }
@@ -173,6 +182,16 @@ public final class ShelfService {
     public Book changeStatus(String title, String author, String status)
             throws IOException {
         return changeStatus(title, author, parseStatus(status));
+    }
+
+    /** Stored form: trimmed only; first-entered casing and inner whitespace are kept. */
+    private static String normalizeForStorage(String value) {
+        return value.trim();
+    }
+
+    /** Identity form: trimmed and lower-cased; applied to both sides at compare time. */
+    private static String normalizeForIdentity(String value) {
+        return value.trim().toLowerCase(Locale.ROOT);
     }
 
     private ReadingStatus parseStatus(String status) {

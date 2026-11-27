@@ -10,6 +10,7 @@ import org.example.reading.service.ShelfService;
 import org.example.reading.shelf.Book;
 import org.example.reading.shelf.ReadingStatus;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -22,6 +23,15 @@ import java.util.Objects;
  */
 public final class ReadingShelfHandler implements HttpHandler {
     private static final int MAX_REQUEST_BYTES = 1024 * 1024;
+    private static final int READ_CHUNK_BYTES = 8192;
+    private static final int MAX_TITLE_LENGTH = 100;
+    private static final int MAX_AUTHOR_LENGTH = 50;
+    private static final String TITLE_LENGTH_MESSAGE =
+            "title must be between 1 and 100 characters";
+    private static final String AUTHOR_LENGTH_MESSAGE =
+            "author must be between 1 and 50 characters";
+    private static final String PAYLOAD_TOO_LARGE_MESSAGE =
+            "Request body exceeds the 1 MB limit.";
 
     private final ShelfService service;
     private final ObjectMapper objectMapper;
@@ -103,6 +113,9 @@ public final class ReadingShelfHandler implements HttpHandler {
         JsonNode body;
         try {
             body = readJsonBody(exchange);
+        } catch (PayloadTooLargeException exception) {
+            sendPayloadTooLarge(exchange);
+            return;
         } catch (JsonProcessingException | IllegalArgumentException exception) {
             sendMalformedJson(exchange);
             return;
@@ -156,6 +169,9 @@ public final class ReadingShelfHandler implements HttpHandler {
         JsonNode body;
         try {
             body = readJsonBody(exchange);
+        } catch (PayloadTooLargeException exception) {
+            sendPayloadTooLarge(exchange);
+            return;
         } catch (JsonProcessingException | IllegalArgumentException exception) {
             sendMalformedJson(exchange);
             return;
@@ -207,15 +223,11 @@ public final class ReadingShelfHandler implements HttpHandler {
             return errors;
         }
 
-        JsonNode title = body.get("title");
-        if (title == null || !title.isTextual()
-                || title.textValue().trim().isEmpty()) {
-            errors.put("title", "Title must not be blank");
+        if (!isTrimmedLengthValid(body.get("title"), MAX_TITLE_LENGTH)) {
+            errors.put("title", TITLE_LENGTH_MESSAGE);
         }
-        JsonNode author = body.get("author");
-        if (author == null || !author.isTextual()
-                || author.textValue().trim().isEmpty()) {
-            errors.put("author", "Author must not be blank");
+        if (!isTrimmedLengthValid(body.get("author"), MAX_AUTHOR_LENGTH)) {
+            errors.put("author", AUTHOR_LENGTH_MESSAGE);
         }
         JsonNode status = body.get("status");
         if (status == null || !status.isTextual()) {
@@ -228,6 +240,14 @@ public final class ReadingShelfHandler implements HttpHandler {
             }
         }
         return errors;
+    }
+
+    private static boolean isTrimmedLengthValid(JsonNode value, int maxLength) {
+        if (value == null || !value.isTextual()) {
+            return false;
+        }
+        int length = value.textValue().trim().length();
+        return length >= 1 && length <= maxLength;
     }
 
     private Map<String, String> statusFieldErrors(JsonNode body) {
@@ -261,19 +281,39 @@ public final class ReadingShelfHandler implements HttpHandler {
 
     private JsonNode readJsonBody(HttpExchange exchange)
             throws IOException, JsonProcessingException {
-        long contentLength = exchange.getRequestBody().available();
-        if (contentLength > MAX_REQUEST_BYTES) {
-            throw new IllegalArgumentException("Request body is too large");
-        }
-        byte[] bytes = exchange.getRequestBody().readNBytes(MAX_REQUEST_BYTES + 1);
-        if (bytes.length == 0 || bytes.length > MAX_REQUEST_BYTES) {
-            throw new IllegalArgumentException("Request body is empty or too large");
+        byte[] bytes = readBoundedBody(exchange.getRequestBody());
+        if (bytes.length == 0) {
+            throw new IllegalArgumentException("Request body is empty");
         }
         JsonNode body = objectMapper.readTree(bytes);
         if (body == null) {
             throw new IllegalArgumentException("Request body must be JSON");
         }
         return body;
+    }
+
+    /**
+     * Reads at most MAX_REQUEST_BYTES. Does not use available() or Content-Length;
+     * stops reading as soon as the cap is exceeded.
+     */
+    private byte[] readBoundedBody(InputStream input) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        byte[] chunk = new byte[READ_CHUNK_BYTES];
+        int total = 0;
+        int read;
+        while ((read = input.read(chunk)) != -1) {
+            total += read;
+            if (total > MAX_REQUEST_BYTES) {
+                throw new PayloadTooLargeException();
+            }
+            buffer.write(chunk, 0, read);
+        }
+        return buffer.toByteArray();
+    }
+
+    private void sendPayloadTooLarge(HttpExchange exchange) throws IOException {
+        sendError(exchange, 413, "PAYLOAD_TOO_LARGE",
+                PAYLOAD_TOO_LARGE_MESSAGE, Map.of());
     }
 
     private void sendMalformedJson(HttpExchange exchange) throws IOException {
@@ -362,5 +402,15 @@ public final class ReadingShelfHandler implements HttpHandler {
         exchange.sendResponseHeaders(status, bytes.length);
         exchange.getResponseBody().write(bytes);
         exchange.close();
+    }
+
+    /**
+     * Signals an oversize request body. Deliberately NOT an IllegalArgumentException so
+     * the malformed-JSON catch blocks do not swallow it.
+     */
+    private static final class PayloadTooLargeException extends RuntimeException {
+        PayloadTooLargeException() {
+            super("Request body exceeds the limit", null, false, false);
+        }
     }
 }

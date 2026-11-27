@@ -25,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
@@ -75,21 +77,118 @@ class ShelfServiceTest {
                 ReadingStatus.TO_READ);
 
         assertEquals(List.of(created), service.listBooks());
-        assertEquals(" Dune ", created.title());
-        assertEquals(" Frank Herbert ", created.author());
+        assertEquals("Dune", created.title());
+        assertEquals("Frank Herbert", created.author());
         assertEquals(ReadingStatus.TO_READ, created.status());
         verify(persistence).saveWithResult(List.of(created));
     }
 
     @Test
-    @DisplayName("FR-04: duplicate matching is exact and ignores status")
-    void duplicateMatchingIsExactAndIgnoresStatus() throws IOException {
+    @DisplayName("FR-04: duplicate matching is trimmed, case-insensitive and ignores status")
+    void duplicateMatchingIsTrimmedCaseInsensitiveAndIgnoresStatus() throws IOException {
         service.createBook("Dune", "Frank Herbert", ReadingStatus.TO_READ);
         assertThrows(ShelfService.DuplicateBookException.class,
                 () -> service.createBook("Dune", "Frank Herbert", ReadingStatus.FINISHED));
 
         assertEquals(1, service.listBooks().size());
         assertEquals(ReadingStatus.TO_READ, service.listBooks().get(0).status());
+    }
+
+    @Test
+    @DisplayName("FR-04: create stores trimmed values and keeps first-entered casing and inner spacing")
+    void createStoresTrimmedValuesWithFirstEnteredCasing() throws IOException {
+        Book created = service.createBook("  dUNE  ", "	Frank  HERBERT ",
+                ReadingStatus.TO_READ);
+
+        assertEquals("dUNE", created.title());
+        assertEquals("Frank  HERBERT", created.author());
+        assertEquals(List.of(created), service.listBooks());
+    }
+
+    @Test
+    @DisplayName("FR-04: duplicate matching ignores case, surrounding whitespace and status")
+    void duplicateMatchingIgnoresCaseAndSurroundingWhitespace() throws IOException {
+        Book first = service.createBook("Dune", "Frank Herbert", ReadingStatus.TO_READ);
+
+        ShelfService.DuplicateBookException duplicate =
+                assertThrows(ShelfService.DuplicateBookException.class,
+                        () -> service.createBook(" dUNE ", "  FRANK herbert	",
+                                ReadingStatus.FINISHED));
+
+        assertEquals("dUNE", duplicate.getTitle());
+        assertEquals(List.of(first), service.listBooks());
+        verify(persistence, times(1)).saveWithResult(anyList());
+    }
+
+    @Test
+    @DisplayName("FR-04: inner whitespace is not collapsed for identity matching")
+    void innerWhitespaceIsNotCollapsed() throws IOException {
+        service.createBook("Dune", "Frank Herbert", ReadingStatus.TO_READ);
+
+        service.createBook("Dune", "Frank  Herbert", ReadingStatus.TO_READ);
+
+        assertEquals(2, service.listBooks().size());
+    }
+
+    @Test
+    @DisplayName("FR-03: status change finds a book ignoring case and surrounding whitespace")
+    void statusChangeLookupIgnoresCaseAndSurroundingWhitespace() throws IOException {
+        service.createBook("Dune", "Frank Herbert", ReadingStatus.TO_READ);
+
+        Book changed = service.changeStatus(" DUNE ", " frank herbert",
+                ReadingStatus.FINISHED);
+
+        assertEquals(new Book("Dune", "Frank Herbert", ReadingStatus.FINISHED), changed);
+        assertEquals(List.of(changed), service.listBooks());
+    }
+
+    @Test
+    @DisplayName("FR-03: status change still reports an unknown identity after normalization")
+    void statusChangeUnknownIdentityAfterNormalization() throws IOException {
+        service.createBook("Dune", "Frank Herbert", ReadingStatus.TO_READ);
+
+        assertThrows(ShelfService.BookNotFoundException.class,
+                () -> service.changeStatus(" Dune ", "Someone Else",
+                        ReadingStatus.FINISHED));
+    }
+
+    @Test
+    @DisplayName("FR-03, FR-04: previously saved untrimmed or mixed-case books are matched without migration")
+    void legacyPersistedBooksAreNormalizedAtCompareTimeOnly() throws IOException {
+        Book legacy = new Book("  DUNE ", " frank herbert", ReadingStatus.TO_READ);
+        JsonReadingShelfPersistence legacyPersistence =
+                mock(JsonReadingShelfPersistence.class);
+        when(legacyPersistence.load()).thenReturn(new ArrayList<>(List.of(legacy)));
+        ShelfService legacyService = new ShelfService(legacyPersistence);
+
+        assertThrows(ShelfService.DuplicateBookException.class,
+                () -> legacyService.createBook("Dune", "Frank Herbert",
+                        ReadingStatus.TO_READ));
+        verify(legacyPersistence, never()).saveWithResult(anyList());
+        assertEquals(List.of(legacy), legacyService.listBooks());
+
+        Book changed = legacyService.changeStatus("dune", "FRANK HERBERT",
+                ReadingStatus.FINISHED);
+
+        assertEquals(new Book("  DUNE ", " frank herbert", ReadingStatus.FINISHED), changed);
+        assertEquals(List.of(changed), legacyService.listBooks());
+    }
+
+    @Test
+    @DisplayName("FR-03: the service adds no length cap so older long books stay updatable")
+    void serviceDoesNotCapLengths() throws IOException {
+        String longTitle = "T".repeat(150);
+        String longAuthor = "A".repeat(80);
+        Book legacy = new Book(longTitle, longAuthor, ReadingStatus.TO_READ);
+        JsonReadingShelfPersistence legacyPersistence =
+                mock(JsonReadingShelfPersistence.class);
+        when(legacyPersistence.load()).thenReturn(new ArrayList<>(List.of(legacy)));
+        ShelfService legacyService = new ShelfService(legacyPersistence);
+
+        Book changed = legacyService.changeStatus(longTitle, longAuthor,
+                ReadingStatus.READING);
+
+        assertEquals(ReadingStatus.READING, changed.status());
     }
 
     @Test

@@ -38,9 +38,9 @@ Provide a lightweight local web application for an avid reader to record a perso
 
 ### FR-04 — Prevent duplicate inventory entries
 
-- **Requirement:** The application prevents duplicate entries. A duplicate is defined as an entry with the same title and author as an existing entry; the reading status is ignored when determining duplicates.
+- **Requirement:** The application prevents duplicate entries. A duplicate is defined as an entry whose title and author, after trimming leading and trailing whitespace and comparing case-insensitively (lower-casing with Locale.ROOT), equal those of an existing entry; the reading status is ignored when determining duplicates. New entries are stored with trimmed title and author, keeping the casing of the first entry. Existing saved entries are not migrated; they are normalized the same way at comparison time. The same trimmed, case-insensitive comparison identifies the book whose status is changed.
 - **Source:** User answer 2, revised by the explicit duplicate-prevention decision for SCRUM-193.
-- **Acceptance criterion:** Given an existing entry with a title and author, attempting to add another entry with the same title and author is rejected even when its status differs from the existing entry. The duplicate is not added, and the inventory remains unchanged.
+- **Acceptance criterion:** Given an existing entry with a title and author, attempting to add another entry whose title and author match after trimming and case-insensitive comparison (for example " dune " and "Dune") is rejected even when its status differs from the existing entry. The duplicate is not added, and the inventory remains unchanged. When creating a book, the title (at most 100 characters) and the author (at most 50 characters) are measured after trimming; a value that is empty after trimming, or longer than its limit, is rejected with a field-specific validation error (HTTP 400). A request body larger than 1,048,576 bytes is rejected with HTTP 413 (PAYLOAD_TOO_LARGE). Status changes apply no length limit, so previously saved books remain updatable.
 
 ### FR-05 — Provide action feedback
 
@@ -89,7 +89,7 @@ Provide a lightweight local web application for an avid reader to record a perso
 ## 5. Edge Cases & Error Handling
 
 - Empty and whitespace-only title and author values are rejected separately with clear, field-specific validation feedback. (FR-01; SCRUM-193, Acceptance Criteria 1; user answer 4.)
-- Submitting an entry whose title and author match an existing entry is rejected as a duplicate, regardless of the submitted status. Status does not participate in duplicate detection. (FR-04; explicit user decision.)
+- Submitting an entry whose title and author match an existing entry after trimming and case-insensitive comparison (Locale.ROOT) is rejected as a duplicate, regardless of the submitted status. Status does not participate in duplicate detection. New entries are stored trimmed with the casing of the first entry; existing saved entries are not migrated. On create, title is limited to 100 characters and author to 50 characters after trimming, and request bodies over 1,048,576 bytes are rejected with HTTP 413. (FR-04; explicit user decision.)
 - Status changes may go directly between any distinct statuses, including returning to a previous status. (FR-03; user answer 1.)
 - Malformed, unreadable, and unwritable persistence data must produce explicit error handling. The precise user-facing behavior and recovery strategy are **Not Found** and are to be defined by the Architecture Agent within `.github/standards/TechStack.md` constraints. (NFR-02; user answer 5.)
 - The persistence location is **Not Found** and is to be defined by the Architecture Agent within `.github/standards/TechStack.md` constraints. No path or other storage-location implementation assumption is made here. (FR-06; user answer 3.)
