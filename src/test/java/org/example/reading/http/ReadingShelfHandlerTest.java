@@ -330,15 +330,8 @@ class ReadingShelfHandlerTest {
     @Test
     @DisplayName("FR-05: POST body over 1,048,576 bytes without a Content-Length returns 413 PAYLOAD_TOO_LARGE")
     void createOversizeBodyWithoutContentLengthReturns413() throws Exception {
-        byte[] body = paddedBookJson(1_048_576 + 1).getBytes(StandardCharsets.UTF_8);
-
-        HttpResponse<String> response = client.send(
-                HttpRequest.newBuilder(uri("/api/books"))
-                        .header("Content-Type", "application/json")
-                        .POST(HttpRequest.BodyPublishers.fromPublisher(
-                                HttpRequest.BodyPublishers.ofByteArray(body)))
-                        .build(),
-                HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = sendChunked("POST", "/api/books",
+                paddedBookJson(1_048_576 + 1));
 
         assertPayloadTooLarge(response);
     }
@@ -376,6 +369,72 @@ class ReadingShelfHandlerTest {
         }
     }
 
+    @Test
+    @DisplayName("FR-04: a rejected duplicate leaves the inventory unchanged")
+    void duplicateDoesNotChangeInventory() throws Exception {
+        assertEquals(201, post("/api/books",
+                bookJson("Dune", "Frank Herbert", "To Read")).statusCode());
+
+        HttpResponse<String> duplicate = post("/api/books",
+                bookJson(" dune ", "FRANK HERBERT", "Finished"));
+        assertEquals(409, duplicate.statusCode());
+
+        JsonNode books = mapper.readTree(get("/api/books").body()).get("books");
+        assertEquals(1, books.size());
+        assertEquals("Dune", books.get(0).get("title").textValue());
+        assertEquals("Frank Herbert", books.get(0).get("author").textValue());
+        assertEquals("To Read", books.get(0).get("status").textValue());
+    }
+
+    @Test
+    @DisplayName("FR-01, FR-05: non-textual title or author on create uses the length messages")
+    void createRejectsNonTextualTitleAndAuthor() throws Exception {
+        String[] nonTextual = {"123", "false", "null", "[\"a\"]", "{\"x\":1}"};
+        for (String value : nonTextual) {
+            HttpResponse<String> badTitle = post("/api/books",
+                    "{\"title\":" + value + ",\"author\":\"Frank Herbert\",\"status\":\"To Read\"}");
+            assertEquals(400, badTitle.statusCode(), "title=" + value);
+            JsonNode titleErrors = mapper.readTree(badTitle.body())
+                    .get("error").get("fieldErrors");
+            assertEquals("title must be between 1 and 100 characters",
+                    titleErrors.get("title").textValue(), "title=" + value);
+            assertEquals(1, titleErrors.size(), "title=" + value);
+
+            HttpResponse<String> badAuthor = post("/api/books",
+                    "{\"title\":\"Dune\",\"author\":" + value + ",\"status\":\"To Read\"}");
+            assertEquals(400, badAuthor.statusCode(), "author=" + value);
+            JsonNode authorErrors = mapper.readTree(badAuthor.body())
+                    .get("error").get("fieldErrors");
+            assertEquals("author must be between 1 and 50 characters",
+                    authorErrors.get("author").textValue(), "author=" + value);
+            assertEquals(1, authorErrors.size(), "author=" + value);
+        }
+        assertEquals(0, mapper.readTree(get("/api/books").body()).get("books").size());
+    }
+
+    @Test
+    @DisplayName("FR-05: PATCH body of exactly 1,048,576 bytes is accepted")
+    void changeStatusBodyAtTheLimitIsAccepted() throws Exception {
+        startServerWithBook("Dune", "Frank Herbert", ReadingStatus.TO_READ);
+        String body = padToBytes(bookJson("Dune", "Frank Herbert", "Reading"), 1_048_576);
+        assertEquals(1_048_576, body.getBytes(StandardCharsets.UTF_8).length);
+
+        HttpResponse<String> response = patch("/api/books/status", body);
+
+        assertEquals(200, response.statusCode());
+        assertEquals("Reading", mapper.readTree(response.body())
+                .get("book").get("status").textValue());
+    }
+
+    @Test
+    @DisplayName("FR-05: PATCH body over 1,048,576 bytes without a Content-Length returns 413 PAYLOAD_TOO_LARGE")
+    void changeStatusOversizeBodyWithoutContentLengthReturns413() throws Exception {
+        HttpResponse<String> response = sendChunked("PATCH", "/api/books/status",
+                padToBytes(bookJson("Dune", "Frank Herbert", "Reading"), 1_048_576 + 1));
+
+        assertPayloadTooLarge(response);
+    }
+
     private void assertPayloadTooLarge(HttpResponse<String> response) throws Exception {
         assertEquals(413, response.statusCode());
         JsonNode error = mapper.readTree(response.body()).get("error");
@@ -400,8 +459,38 @@ class ReadingShelfHandlerTest {
 
     /** A valid JSON book body padded with trailing spaces to exactly the requested byte size. */
     private static String paddedBookJson(int totalBytes) {
-        String json = bookJson("Dune", "Frank Herbert", "To Read");
-        return json + " ".repeat(totalBytes - json.length());
+        return padToBytes(bookJson("Dune", "Frank Herbert", "To Read"), totalBytes);
+    }
+
+    /** Pads JSON with trailing ASCII spaces so its UTF-8 size is exactly totalBytes. */
+    private static String padToBytes(String json, int totalBytes) {
+        int currentBytes = json.getBytes(StandardCharsets.UTF_8).length;
+        assertTrue(totalBytes >= currentBytes, "target size is smaller than the JSON itself");
+        return json + " ".repeat(totalBytes - currentBytes);
+    }
+
+    /** Sends a request without a Content-Length (chunked) over a pinned HTTP/1.1 connection. */
+    private HttpResponse<String> sendChunked(String method, String path, String body)
+            throws Exception {
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+        return client.send(
+                HttpRequest.newBuilder(uri(path))
+                        .version(HttpClient.Version.HTTP_1_1)
+                        .header("Content-Type", "application/json")
+                        .method(method, HttpRequest.BodyPublishers.fromPublisher(
+                                HttpRequest.BodyPublishers.ofByteArray(bytes)))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+    }
+
+    private void startServerWithBook(String title, String author, ReadingStatus status)
+            throws Exception {
+        JsonReadingShelfPersistence persistence =
+                mock(JsonReadingShelfPersistence.class);
+        when(persistence.load()).thenReturn(new ArrayList<>());
+        ShelfService service = new ShelfService(persistence);
+        service.createBook(title, author, status);
+        restartServer(service);
     }
 
     private HttpResponse<String> get(String path) throws Exception {
