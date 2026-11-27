@@ -75,15 +75,15 @@ class ShelfServiceTest {
                 ReadingStatus.TO_READ);
 
         assertEquals(List.of(created), service.listBooks());
-        assertEquals(" Dune ", created.title());
-        assertEquals(" Frank Herbert ", created.author());
+        assertEquals("Dune", created.title());
+        assertEquals("Frank Herbert", created.author());
         assertEquals(ReadingStatus.TO_READ, created.status());
         verify(persistence).saveWithResult(List.of(created));
     }
 
     @Test
-    @DisplayName("FR-04: duplicate matching is exact and ignores status")
-    void duplicateMatchingIsExactAndIgnoresStatus() throws IOException {
+    @DisplayName("FR-04: duplicate matching is trimmed, case-insensitive and ignores status")
+    void duplicateMatchingIsTrimmedCaseInsensitiveAndIgnoresStatus() throws IOException {
         service.createBook("Dune", "Frank Herbert", ReadingStatus.TO_READ);
         assertThrows(ShelfService.DuplicateBookException.class,
                 () -> service.createBook("Dune", "Frank Herbert", ReadingStatus.FINISHED));
