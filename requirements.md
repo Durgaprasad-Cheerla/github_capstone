@@ -22,7 +22,7 @@ Provide a lightweight local web application for an avid reader to record a perso
 
 - **Requirement:** A user can add a book with a title, author, and initial status selected from **To Read**, **Reading**, or **Finished**.
 - **Source:** SCRUM-193, Acceptance Criteria 1.
-- **Acceptance criterion:** Submitting a valid title, author, and one of the three allowed statuses adds a book with those values to the inventory. A title or author that is empty or consists only of whitespace is rejected, the incomplete record is not added, and a clear validation message identifies the invalid field. Exact message wording is not prescribed.
+- **Acceptance criterion:** Submitting a valid title, author, and one of the three allowed statuses adds a book with those values to the inventory. A title or author that is empty or consists only of whitespace is rejected, the incomplete record is not added, and a clear validation message identifies the invalid field. When creating a book, the title (at most 100 characters) and the author (at most 50 characters) are measured after trimming; a value that is empty after trimming, or longer than its limit, is rejected with a field-specific validation error (HTTP 400). Status changes apply no length limit, so previously saved books remain updatable. Exact message wording is not prescribed.
 
 ### FR-02 — Display the complete inventory
 
@@ -40,13 +40,13 @@ Provide a lightweight local web application for an avid reader to record a perso
 
 - **Requirement:** The application prevents duplicate entries. A duplicate is defined as an entry whose title and author, after trimming leading and trailing whitespace and comparing case-insensitively (lower-casing with Locale.ROOT), equal those of an existing entry; the reading status is ignored when determining duplicates. New entries are stored with trimmed title and author, keeping the casing of the first entry. Existing saved entries are not migrated; they are normalized the same way at comparison time. The same trimmed, case-insensitive comparison identifies the book whose status is changed.
 - **Source:** User answer 2, revised by the explicit duplicate-prevention decision for SCRUM-193.
-- **Acceptance criterion:** Given an existing entry with a title and author, attempting to add another entry whose title and author match after trimming and case-insensitive comparison (for example " dune " and "Dune") is rejected even when its status differs from the existing entry. The duplicate is not added, and the inventory remains unchanged. When creating a book, the title (at most 100 characters) and the author (at most 50 characters) are measured after trimming; a value that is empty after trimming, or longer than its limit, is rejected with a field-specific validation error (HTTP 400). A request body larger than 1,048,576 bytes is rejected with HTTP 413 (PAYLOAD_TOO_LARGE). Status changes apply no length limit, so previously saved books remain updatable.
+- **Acceptance criterion:** Given an existing entry with a title and author, attempting to add another entry whose title and author match after trimming and case-insensitive comparison (for example " dune " and "Dune") is rejected even when its status differs from the existing entry. The duplicate is not added, and the inventory remains unchanged.
 
 ### FR-05 — Provide action feedback
 
 - **Requirement:** The application provides clear feedback for validation and user actions.
 - **Source:** SCRUM-193, Acceptance Criteria 5; user answer 4 clarifies field-specific validation messages.
-- **Acceptance criterion:** An invalid title or author produces a clear, field-specific validation message. After a valid create or status-change action, the resulting entry or status is visibly reflected in the dashboard. No exact message wording is prescribed.
+- **Acceptance criterion:** An invalid title or author produces a clear, field-specific validation message. After a valid create or status-change action, the resulting entry or status is visibly reflected in the dashboard. A create or status-change request body larger than 1,048,576 bytes is rejected with HTTP 413 (PAYLOAD_TOO_LARGE) and a clear message. No exact message wording is prescribed.
 
 ### FR-06 — Persist inventory and status changes
 
@@ -89,7 +89,9 @@ Provide a lightweight local web application for an avid reader to record a perso
 ## 5. Edge Cases & Error Handling
 
 - Empty and whitespace-only title and author values are rejected separately with clear, field-specific validation feedback. (FR-01; SCRUM-193, Acceptance Criteria 1; user answer 4.)
-- Submitting an entry whose title and author match an existing entry after trimming and case-insensitive comparison (Locale.ROOT) is rejected as a duplicate, regardless of the submitted status. Status does not participate in duplicate detection. New entries are stored trimmed with the casing of the first entry; existing saved entries are not migrated. On create, title is limited to 100 characters and author to 50 characters after trimming, and request bodies over 1,048,576 bytes are rejected with HTTP 413. (FR-04; explicit user decision.)
+- Submitting an entry whose title and author match an existing entry after trimming and case-insensitive comparison (Locale.ROOT) is rejected as a duplicate, regardless of the submitted status. Status does not participate in duplicate detection. New entries are stored trimmed with the casing of the first entry; existing saved entries are not migrated. (FR-04; explicit user decision.)
+- On create, title is limited to 100 characters and author to 50 characters after trimming; status changes apply no length limit. (FR-01; explicit user decision.)
+- Create and status-change request bodies over 1,048,576 bytes are rejected with HTTP 413. (FR-05; explicit user decision.)
 - Status changes may go directly between any distinct statuses, including returning to a previous status. (FR-03; user answer 1.)
 - Malformed, unreadable, and unwritable persistence data must produce explicit error handling. The precise user-facing behavior and recovery strategy are **Not Found** and are to be defined by the Architecture Agent within `.github/standards/TechStack.md` constraints. (NFR-02; user answer 5.)
 - The persistence location is **Not Found** and is to be defined by the Architecture Agent within `.github/standards/TechStack.md` constraints. No path or other storage-location implementation assumption is made here. (FR-06; user answer 3.)
