@@ -27,6 +27,14 @@ The application binds only to `127.0.0.1` and serves the browser UI at:
 
 Port `8080` must be available. If binding fails, startup reports the failure and does not fall back to another port or interface.
 
+To use another port or data file (for example for a throwaway run), pass Java system properties. The server still binds to `127.0.0.1` only:
+
+```sh
+./mvnw compile exec:java -Dreading.shelf.port=18080 -Dreading.shelf.data.path=/path/to/reading-shelf.json
+```
+
+The legacy path `data/reading-shelf.json` is rejected as a data path.
+
 ## Persistence
 
 The runtime inventory is stored at:
@@ -36,6 +44,12 @@ The runtime inventory is stored at:
 The file is resolved relative to the Maven working directory/repository root. A missing runtime file starts as an empty shelf. A malformed or unreadable existing runtime file fails startup instead of being replaced.
 
 The existing `data/reading-shelf.json` file is never read, migrated, copied, or overwritten. It remains separate from the runtime application data. The `data/` directory is excluded from normal Git version control, so runtime inventory content is not committed with source changes.
+
+## Input rules
+
+- Title and author are trimmed. When creating a book, the title must be 1 to 100 characters and the author 1 to 50 characters after trimming (400 `VALIDATION_ERROR`). Changing a status has no length limit, so books saved earlier stay updatable.
+- Two books are duplicates when their trimmed title and author match case-insensitively (409 `DUPLICATE_BOOK`). New books are stored trimmed with the casing of the first entry; existing saved books are not migrated. If saved data contains several entries that match after this normalization, a status change applies to the first match in stored order.
+- Request bodies over 1,048,576 bytes (1 MB) are rejected with 413 `PAYLOAD_TOO_LARGE` for both create and status-change requests. The server stops reading at the limit, so a client that is still sending a very large body may see a connection reset instead of the 413 response.
 
 ## Build and tests
 
